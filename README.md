@@ -33,6 +33,7 @@ Más detalle de las decisiones de diseño en [docs/decisiones.md](docs/decisione
 ## Estructura del proyecto
 
 ```
+├── DuocAiAgent.ipynb       # Notebook: todo el pipeline paso a paso (ingesta, retrieval, prompts, evaluación)
 ├── app.py                  # App Streamlit (chat)
 ├── chat.py                 # Chat por consola
 ├── ingest.py               # Carga los documentos a PostgreSQL
@@ -56,6 +57,8 @@ Más detalle de las decisiones de diseño en [docs/decisiones.md](docs/decisione
 ```
 
 ## Cómo ejecutarlo
+
+> Paso a paso detallado (Windows/Mac/Linux, con Jupyter): **[docs/INSTRUCTIVO.md](docs/INSTRUCTIVO.md)**
 
 ### 1. Requisitos
 - Docker y Docker Compose (opción recomendada), o Python 3.11 + PostgreSQL 16 con pgvector.
@@ -95,6 +98,7 @@ docker compose up -d db
 
 python ingest.py            # --reset para borrar y volver a cargar
 streamlit run app.py        # o: python chat.py  para usarlo por consola
+jupyter notebook DuocAiAgent.ipynb   # o el notebook paso a paso
 ```
 
 > Si usan una base en la nube (Supabase, Neon, etc.) basta con poner su connection string en `DATABASE_URL`

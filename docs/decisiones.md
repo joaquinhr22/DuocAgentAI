@@ -52,7 +52,7 @@ Cada documento tiene una estructura distinta, así que no usamos un solo tamaño
 | Prácticas | 700 / 100 | `TIPO:` / `TEMA:` | Separa práctica laboral de profesional (queda 1 chunk para cada una) |
 | Web | 1000 / 150 | párrafos | Genérico |
 
-Resultado con los PDFs reales: reglamento 118 chunks, calendario 15, prácticas 2.
+Resultado con los PDFs reales: reglamento 116 chunks, calendario 15, prácticas 2.
 Antes de cortar el reglamento se pone un salto de párrafo antes de cada `Artículo N°X.`, porque pypdf deja
 varios artículos pegados en la misma línea. Se descartan los chunks de menos de 80 caracteres (títulos sueltos,
 números de página).

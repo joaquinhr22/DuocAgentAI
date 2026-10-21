@@ -19,5 +19,7 @@ sentence-transformers==5.7.0
 # App
 streamlit==1.63.0
 
-# Tests
+# Tests y notebook
 pytest
+notebook
+ipykernel
