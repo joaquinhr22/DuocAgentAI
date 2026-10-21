@@ -36,7 +36,7 @@ CONFIG_FUENTES = {
     "practica": {
         "fuente": "practicas",
         "chunk_size": 700,
-        "chunk_overlap": 150,
+        "chunk_overlap": 100,
         "separators": ["\nTIPO:", "\nTEMA:", "\n\n", "\n", " "],
     },
 }
