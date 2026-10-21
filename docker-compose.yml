@@ -1,0 +1,31 @@
+services:
+
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: duoc_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d duoc_agent"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    env_file: .env
+    environment:
+      # dentro de docker la BD se llama "db", no localhost
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/duoc_agent
+    ports:
+      - "8501:8501"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

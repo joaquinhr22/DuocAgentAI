@@ -1,0 +1,41 @@
+// Diagrama de arquitectura. Para regenerar el PNG:  dot -Tpng docs/arquitectura.dot -o docs/arquitectura.png
+digraph G {
+  rankdir=LR;
+  graph [fontname="DejaVu Sans", fontsize=12, nodesep=0.4, ranksep=0.6, pad=0.3, label="DuocAIAgent - Arquitectura (RAG con Llama 3.1 8B + PostgreSQL/pgvector)", labelloc=t, fontsize=16];
+  node  [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#f2f2f2", color="#666666"];
+  edge  [fontname="DejaVu Sans", fontsize=9, color="#555555"];
+
+  subgraph cluster_fuentes {
+    label="1. Fuentes de datos"; style="rounded,dashed"; color="#999999";
+    pdfs [label="Fuentes INTERNAS (PDF)\nReglamento académico\nCalendario académico 2026\nPrácticas laboral/profesional", fillcolor="#fff4d6"];
+    web  [label="Fuentes EXTERNAS (web)\nduoc.cl\nFeriados Chile (Wikipedia)\ndata/externos/fuentes.txt", fillcolor="#fff4d6"];
+  }
+
+  subgraph cluster_ingesta {
+    label="2. Ingesta  (python ingest.py)"; style="rounded,dashed"; color="#999999";
+    extraer [label="Extracción\npypdf / BeautifulSoup\n+ limpieza de texto"];
+    chunk   [label="Chunking por tipo de doc\nreglamento: 1000/150 (por artículo)\ncalendario: 600/100 (por semestre)\nprácticas: 700/100"];
+    emb1    [label="Embeddings\nparaphrase-multilingual-MiniLM\n(384 dim, local)"];
+  }
+
+  db [label="PostgreSQL + pgvector\n\ntabla documentos (HNSW coseno)\ntabla interacciones (logs)", shape=cylinder, fillcolor="#dde8ff"];
+
+  subgraph cluster_consulta {
+    label="3. Consulta (app.py / chat.py)"; style="rounded,dashed"; color="#999999";
+    user  [label="Estudiante\n(Streamlit)", shape=ellipse, fillcolor="#e3f6e3"];
+    emb2  [label="Embedding\nde la pregunta"];
+    ret   [label="Búsqueda vectorial\ntop-20 candidatos"];
+    rer   [label="Reranking\ncross-encoder mMiniLM\ntop-5"];
+    prom  [label="Prompt\nrol + tarea + contexto\n+ few-shot / CoT\n+ historial (6 msgs)"];
+    llm   [label="LLM\nLlama 3.1 8B Instant\n(API Groq)", fillcolor="#ffe0e0"];
+    resp  [label="Respuesta\n+ fuentes citadas\n+ tokens/latencia"];
+  }
+
+  evalx [label="Evaluación\neval/evaluate.py\nLLM-as-judge (Llama 3.3 70B)", fillcolor="#efe3ff"];
+
+  pdfs -> extraer; web -> extraer; extraer -> chunk -> emb1;
+  emb1 -> db [label="INSERT"];
+  user -> emb2 -> ret; db -> ret [label="<=> coseno"]; ret -> rer -> prom -> llm -> resp -> user;
+  resp -> db [label="log interacción", style=dashed];
+  evalx -> prom [style=dashed, label="compara\nzero/few/cot"];
+}

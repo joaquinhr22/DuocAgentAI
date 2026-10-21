@@ -1,0 +1,25 @@
+# LLM
+groq==1.7.0
+python-dotenv==1.2.3
+
+# Base de datos vectorial
+psycopg[binary]==3.2.10
+pgvector==0.4.1
+numpy
+
+# Ingesta
+pypdf==6.18.0
+langchain-text-splitters==1.1.2
+requests
+beautifulsoup4
+
+# Embeddings y reranker (locales)
+sentence-transformers==5.7.0
+
+# App
+streamlit==1.63.0
+
+# Tests y notebook
+pytest
+notebook
+ipykernel
