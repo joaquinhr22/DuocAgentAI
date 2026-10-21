@@ -40,3 +40,28 @@ def test_leer_fuentes_externas_ignora_comentarios(tmp_path):
     f.write_text("# comentario\n\nhttps://a.cl\n  https://b.cl  \n", encoding="utf-8")
     assert leer_fuentes_externas(str(f)) == ["https://a.cl", "https://b.cl"]
     assert leer_fuentes_externas(str(tmp_path / "no_existe.txt")) == []
+
+
+def test_calendario_cada_chunk_lleva_su_seccion_y_se_ignoran_reglas():
+    from src.ingesta.ingest import CONFIG_FUENTES
+    texto = ("FUENTE DE CONOCIMIENTO: CALENDARIO ACADÉMICO DUOC UC 2026 - documento de prueba para tests\n\n"
+             "===================== PRIMER SEMESTRE 2026 (2026-1) =====================\n\n"
+             "Período Ordinario de Inscripción de Asignaturas: Inicio: 13-01-2026. Término: 15-01-2026.\n\n"
+             "===================== SEGUNDO SEMESTRE 2026 (2026-2) =====================\n\n"
+             "Período Ordinario de Inscripción de Asignaturas: Inicio: 27-07-2026. Término: 30-07-2026.\n\n"
+             "===================== REGLAS DE INTERPRETACIÓN PARA EL AGENTE =====================\n\n"
+             "1. Todas las fechas corresponden al Calendario Académico Duoc UC 2026 y no se deben inventar.")
+    chunks = dividir_en_chunks(texto, CONFIG_FUENTES["calendario"])
+    assert len(chunks) == 3
+    assert chunks[1].startswith("[PRIMER SEMESTRE 2026 (2026-1)]") and "13-01-2026" in chunks[1]
+    assert chunks[2].startswith("[SEGUNDO SEMESTRE 2026 (2026-2)]") and "27-07-2026" in chunks[2]
+    assert not any("REGLAS DE INTERPRETACIÓN" in c for c in chunks)
+
+
+def test_preparar_reglamento_separa_articulos_pegados():
+    from src.ingesta.ingest import preparar_reglamento
+    texto = "para tales efectos. Artículo N°30. La asistencia... según el artículo N°29. Artículo N°45 . Un estudiante"
+    r = preparar_reglamento(texto)
+    assert "\n\nArtículo N°30." in r
+    assert "\n\nArtículo N°45 ." in r
+    assert "el artículo N°29." in r  # referencias en minuscula no se cortan

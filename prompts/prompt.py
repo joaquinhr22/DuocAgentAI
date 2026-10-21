@@ -41,6 +41,8 @@ Estos son fragmentos de los documentos oficiales. Cada uno indica su fuente y si
 - Sé breve: máximo 2 párrafos o una lista corta. Usa viñetas si hay fechas o pasos.
 - Al final escribe la fuente entre corchetes, por ejemplo: [Fuente: calendario_academico].
 - Si citas un artículo del reglamento, indica su número (ej: Artículo N°45).
+- Fechas: si un evento tiene inicio y término, da ambas fechas. Indica siempre a qué período
+  corresponde (TAV, primer semestre 2026-1 o segundo semestre 2026-2), porque muchos procesos se repiten.
 
 # RESTRICCIONES
 - Usa SOLO la información del CONTEXTO RECUPERADO. No inventes fechas, horas ni artículos.

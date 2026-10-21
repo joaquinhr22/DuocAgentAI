@@ -14,7 +14,7 @@ digraph G {
   subgraph cluster_ingesta {
     label="2. Ingesta  (python ingest.py)"; style="rounded,dashed"; color="#999999";
     extraer [label="Extracción\npypdf / BeautifulSoup\n+ limpieza de texto"];
-    chunk   [label="Chunking por tipo de doc\nreglamento: 1000/150 (por artículo)\ncalendario: 600/100\nprácticas: 1200/150"];
+    chunk   [label="Chunking por tipo de doc\nreglamento: 1000/150 (por artículo)\ncalendario: 600/100 (por semestre)\nprácticas: 700/100"];
     emb1    [label="Embeddings\nparaphrase-multilingual-MiniLM\n(384 dim, local)"];
   }
 

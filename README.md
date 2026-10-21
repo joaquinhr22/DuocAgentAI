@@ -70,9 +70,10 @@ cp .env.example .env
 
 El `.env` está en el `.gitignore`, **nunca se sube al repo**.
 
-### 3. Copiar los PDFs
+### 3. Documentos
 
-Poner los 3 PDFs en `data/internos/` (ver [data/internos/README.md](data/internos/README.md)).
+Los 3 PDFs ya vienen en `data/internos/` (ver [data/internos/README.md](data/internos/README.md)).
+Las URLs externas están en `data/externos/fuentes.txt`.
 
 ### 4a. Con Docker (recomendado)
 
@@ -110,7 +111,7 @@ pytest -v
 
 Prueban la limpieza del texto de pypdf, el chunking por tipo de documento, los prompts, la búsqueda vectorial
 en PostgreSQL y el flujo completo de generación (con un LLM falso para no gastar tokens).
-Si no hay PostgreSQL disponible, los tests de BD se saltan.
+Si no hay PostgreSQL disponible, los tests de BD se saltan. Última corrida: [docs/evidencia_tests.txt](docs/evidencia_tests.txt).
 
 ### Evaluación del RAG
 

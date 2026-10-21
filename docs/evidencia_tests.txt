@@ -1,0 +1,31 @@
+# Evidencia de tests - 2026-10-21 23:10 - PostgreSQL 16 + pgvector local
+============================= test session starts ==============================
+platform linux -- Python 3.13.16, pytest-9.1.1, pluggy-1.7.0 -- /usr/bin/python
+cachedir: .pytest_cache
+rootdir: .
+configfile: pytest.ini
+testpaths: tests
+plugins: langsmith-0.14.12, anyio-4.15.1
+collecting ... collected 19 items
+
+tests/test_ingesta.py::test_limpiar_texto_une_palabras_sueltas_de_pypdf PASSED [  5%]
+tests/test_ingesta.py::test_limpiar_texto_no_rompe_texto_normal PASSED   [ 10%]
+tests/test_ingesta.py::test_config_por_nombre_de_archivo PASSED          [ 15%]
+tests/test_ingesta.py::test_chunks_respetan_tamano_y_cortan_por_articulo PASSED [ 21%]
+tests/test_ingesta.py::test_chunks_descarta_fragmentos_muy_cortos PASSED [ 26%]
+tests/test_ingesta.py::test_leer_fuentes_externas_ignora_comentarios PASSED [ 31%]
+tests/test_ingesta.py::test_calendario_cada_chunk_lleva_su_seccion_y_se_ignoran_reglas PASSED [ 36%]
+tests/test_ingesta.py::test_preparar_reglamento_separa_articulos_pegados PASSED [ 42%]
+tests/test_prompts.py::test_prompt_incluye_contexto_fecha_y_reglas[zero_shot] PASSED [ 47%]
+tests/test_prompts.py::test_prompt_incluye_contexto_fecha_y_reglas[few_shot] PASSED [ 52%]
+tests/test_prompts.py::test_prompt_incluye_contexto_fecha_y_reglas[cot] PASSED [ 57%]
+tests/test_prompts.py::test_few_shot_tiene_ejemplos_y_zero_shot_no PASSED [ 63%]
+tests/test_prompts.py::test_version_invalida PASSED                      [ 68%]
+tests/test_prompts.py::test_extraer_respuesta_final_cot PASSED           [ 73%]
+tests/test_rag.py::test_insertar_y_contar PASSED                         [ 78%]
+tests/test_rag.py::test_busqueda_vectorial_trae_el_chunk_correcto PASSED [ 84%]
+tests/test_rag.py::test_generate_arma_prompt_con_contexto_y_guarda_interaccion PASSED [ 89%]
+tests/test_rag.py::test_formatear_contexto_indica_fuente_y_tipo PASSED   [ 94%]
+tests/test_rag.py::test_ingesta_de_los_pdfs_reales PASSED                [100%]
+
+============================== 19 passed in 2.12s ==============================

@@ -24,18 +24,18 @@ CONFIG_FUENTES = {
         "fuente": "reglamento_academico",
         "chunk_size": 1000,
         "chunk_overlap": 150,
-        # cortamos idealmente por articulo para que no queden articulos partidos
-        "separators": ["\nArtículo N°", "\n\n", "\n", ". ", " "],
+        # cortamos idealmente por titulo y por articulo para que no queden articulos partidos
+        "separators": ["\n\nTÍTULO", "\n\nArtículo N°", "\n\n", "\n", ". ", " "],
     },
     "calendario": {
         "fuente": "calendario_academico",
         "chunk_size": 600,
         "chunk_overlap": 100,
-        "separators": ["\n=====", "\n\n", "\n", " "],
+        "separators": ["\n\n", "\n", " "],
     },
     "practica": {
         "fuente": "practicas",
-        "chunk_size": 1200,
+        "chunk_size": 700,
         "chunk_overlap": 150,
         "separators": ["\nTIPO:", "\nTEMA:", "\n\n", "\n", " "],
     },
@@ -60,6 +60,16 @@ def limpiar_texto(texto: str) -> str:
     texto = texto.replace("<<PARRAFO>>", "\n\n")
     texto = re.sub(r"[ \t]{2,}", " ", texto)
     return texto.strip()
+
+
+def preparar_reglamento(texto: str) -> str:
+    """Despues de limpiar, varios articulos quedan pegados en la misma linea
+    ("...efectos. Artículo N°30. La asistencia..."). Les ponemos un salto de parrafo
+    antes para que el splitter pueda cortar por articulo.
+    Ojo: solo "Artículo N°X." con mayuscula y punto; las referencias tipo "el artículo N°30" no se tocan."""
+    texto = re.sub(r"\s*(Artículo N°\s?\d+\s?\.)", r"\n\n\1", texto)
+    texto = re.sub(r"\s*(TÍTULO [IVXL]+)\s", r"\n\n\1 ", texto)
+    return texto
 
 
 def extraer_texto_pdf(ruta: Path) -> str:
@@ -91,14 +101,45 @@ def config_para_archivo(nombre: str) -> dict:
     return CONFIG_DEFAULT
 
 
+# Secciones del calendario: "===== PRIMER SEMESTRE 2026 (2026-1) ====="
+PATRON_SECCION = re.compile(r"={10,}\s*(.+?)\s*={10,}")
+# esta seccion del PDF son instrucciones para el agente, no datos; esas reglas van en el prompt
+SECCIONES_IGNORADAS = ("REGLAS DE INTERPRETACIÓN",)
+
+
+def separar_secciones(texto: str) -> list[tuple[str, str]]:
+    """Devuelve [(titulo_seccion, contenido)]. Si el texto no tiene secciones devuelve [("", texto)]."""
+    partes = PATRON_SECCION.split(texto)
+    if len(partes) == 1:
+        return [("", texto)]
+    secciones = [("", partes[0])] if partes[0].strip() else []
+    for i in range(1, len(partes), 2):
+        secciones.append((partes[i].strip(), partes[i + 1]))
+    return secciones
+
+
 def dividir_en_chunks(texto: str, cfg: dict) -> list[str]:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=cfg["chunk_size"],
         chunk_overlap=cfg["chunk_overlap"],
         separators=cfg["separators"],
     )
-    # descartamos chunks muy chicos (numeros de pagina, titulos sueltos)
-    return [c.strip() for c in splitter.split_text(texto) if len(c.strip()) > 40]
+    if cfg.get("fuente") == "reglamento_academico":
+        texto = preparar_reglamento(texto)
+
+    chunks = []
+    for titulo, contenido in separar_secciones(texto):
+        if titulo.startswith(SECCIONES_IGNORADAS):
+            continue
+        for c in splitter.split_text(contenido):
+            c = c.strip()
+            # descartamos chunks muy chicos (numeros de pagina, titulos sueltos)
+            if len(c) < 80:
+                continue
+            # en el calendario "Inscripción de Asignaturas" aparece en el TAV, 2026-1 y 2026-2,
+            # asi que cada chunk lleva el nombre de su seccion para no mezclarlos
+            chunks.append(f"[{titulo}] {c}" if titulo else c)
+    return chunks
 
 
 def leer_fuentes_externas(ruta: str) -> list[str]:
@@ -113,9 +154,9 @@ def leer_fuentes_externas(ruta: str) -> list[str]:
 # PASO 3 - Embeddings + guardado en PostgreSQL
 # ---------------------------------------------------------------------------
 class Ingestor:
-    def __init__(self):
-        self.embedder = EmbeddingClient()
-        self.db = PostgresClient()
+    def __init__(self, db: PostgresClient | None = None, embedder: EmbeddingClient | None = None):
+        self.embedder = embedder or EmbeddingClient()
+        self.db = db or PostgresClient()
         self.db.crear_tablas()
 
     def _guardar(self, chunks: list[str], fuente: str, tipo: str, origen: str):

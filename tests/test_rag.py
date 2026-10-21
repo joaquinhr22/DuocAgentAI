@@ -54,3 +54,27 @@ def test_generate_arma_prompt_con_contexto_y_guarda_interaccion(db, fake_embedde
 def test_formatear_contexto_indica_fuente_y_tipo():
     ctx = formatear_contexto([{"contenido": "abc", "fuente": "web_wikipedia.org", "tipo": "externa"}])
     assert "Fuente: web_wikipedia.org (externa)" in ctx
+
+
+def test_ingesta_de_los_pdfs_reales(db, fake_embedder, monkeypatch, tmp_path):
+    """Carga los 3 PDFs de data/internos (sin fuentes web) y revisa que queden en la BD."""
+    from pathlib import Path
+    import pytest
+    from src import config
+    from src.ingesta.ingest import Ingestor
+
+    if len(list(Path(config.CARPETA_INTERNOS).glob("*.pdf"))) < 3:
+        pytest.skip("faltan los PDFs en data/internos")
+    sin_urls = tmp_path / "fuentes.txt"
+    sin_urls.write_text("# sin urls\n", encoding="utf-8")
+    monkeypatch.setattr(config, "ARCHIVO_EXTERNOS", str(sin_urls))
+
+    ingestor = Ingestor(db=db, embedder=fake_embedder)
+    ingestor.ingestar_todo()
+    conteo = db.contar_por_fuente()
+    assert set(conteo) == {"calendario_academico", "practicas", "reglamento_academico"}
+    assert conteo["reglamento_academico"] > 50
+
+    # si se corre de nuevo no se duplica nada
+    ingestor.ingestar_todo()
+    assert db.contar_por_fuente() == conteo

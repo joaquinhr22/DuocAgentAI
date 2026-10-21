@@ -12,6 +12,7 @@ Este documento resume por qué elegimos cada cosa. Complementa el informe.
 | pypdf sacaba el calendario palabra por palabra (`FUENTE\n \nDE\n \n...`) y los chunks quedaban malos | Función `limpiar_texto()` antes del chunking |
 | El separador `"\n==========\n"` del calendario nunca calzaba con el texto | Separadores revisados por tipo de documento (`CONFIG_FUENTES`) |
 | Se insertaba varias veces lo mismo en Mongo (había 279 chunks del reglamento en vez de 93) | La ingesta revisa si el archivo ya fue cargado; `--reset` para recargar |
+| Los PDFs solo estaban subidos en Colab | Quedan versionados en `data/internos/` |
 | Los ejemplos few-shot se mandaban dentro del mensaje del usuario | Van en el system prompt; el usuario solo manda su pregunta |
 | No había historial de conversación | Se mandan los últimos 6 mensajes |
 | No había evaluación ni tests | `eval/evaluate.py` (3 versiones de prompt) y `tests/` con pytest |
@@ -47,9 +48,17 @@ Cada documento tiene una estructura distinta, así que no usamos un solo tamaño
 | Documento | chunk_size / overlap | Separador principal | Razón |
 |---|---|---|---|
 | Reglamento | 1000 / 150 | `Artículo N°` | Un artículo es la unidad de sentido; no queremos artículos partidos |
-| Calendario | 600 / 100 | bloques `=====` | Son eventos cortos (fecha + actividad); chunks chicos = búsqueda más precisa |
-| Prácticas | 1200 / 150 | `TIPO:` / `TEMA:` | Separa práctica laboral de profesional |
+| Calendario | 600 / 100 | secciones `=====` (TAV, 2026-1, 2026-2) | Son eventos cortos; chunks chicos = búsqueda más precisa. Cada chunk lleva el nombre de su sección al inicio (ej. `[SEGUNDO SEMESTRE 2026 (2026-2)]`) porque procesos como "Inscripción de Asignaturas" se repiten en los 3 períodos |
+| Prácticas | 700 / 100 | `TIPO:` / `TEMA:` | Separa práctica laboral de profesional (queda 1 chunk para cada una) |
 | Web | 1000 / 150 | párrafos | Genérico |
+
+Resultado con los PDFs reales: reglamento 118 chunks, calendario 15, prácticas 2.
+Antes de cortar el reglamento se pone un salto de párrafo antes de cada `Artículo N°X.`, porque pypdf deja
+varios artículos pegados en la misma línea. Se descartan los chunks de menos de 80 caracteres (títulos sueltos,
+números de página).
+
+La sección "REGLAS DE INTERPRETACIÓN PARA EL AGENTE" del PDF del calendario **no se indexa**: son instrucciones,
+no datos, y si se recuperaba como contexto ensuciaba las respuestas. Esas reglas se pasaron al prompt.
 
 ## 6. Reranking
 
