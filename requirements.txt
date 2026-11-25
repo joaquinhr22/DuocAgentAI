@@ -1,25 +1,28 @@
-# LLM
-groq==1.7.0
-python-dotenv==1.2.3
+langgraph==1.2.16
+langchain-core==1.6.13
+langchain-groq==1.1.3
+langgraph-checkpoint-mongodb==0.5.1
+pymongo==4.19.0
+certifi
+python-dotenv
+pydantic>=2.7
 
-# Base de datos vectorial
-psycopg[binary]==3.2.10
-pgvector==0.4.1
-numpy
-
-# Ingesta
-pypdf==6.18.0
-langchain-text-splitters==1.1.2
+pypdf==6.21.2
+langchain-text-splitters==1.1.3
 requests
 beautifulsoup4
 
-# Embeddings y reranker (locales)
 sentence-transformers==5.7.0
 
-# App
 streamlit==1.63.0
+pandas
 
-# Tests y notebook
+fastapi
+uvicorn[standard]
+httpx
+prometheus-client
+
 pytest
+mongomock
 notebook
 ipykernel
