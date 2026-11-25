@@ -1,14 +1,3 @@
-"""Prompts del agente.
-
-Tenemos 3 versiones para poder compararlas en la evaluacion (eval/evaluate.py):
-- zero_shot: solo instrucciones (rol, tarea, formato, restricciones)
-- few_shot:  lo mismo + ejemplos de como responder  (la que usa la app por defecto)
-- cot:       lo mismo + pedirle que razone paso a paso antes de responder (sirve para fechas/plazos)
-
-Estructura basada en la "anatomia de un prompt" de la clase 1.2:
-contexto/rol -> tarea -> formato -> restricciones -> input.
-"""
-
 MENSAJE_FUERA_DE_DOMINIO = (
     "No puedo ayudarte con ese tema. Soy un asistente de orientación para estudiantes de Duoc UC "
     "(prácticas, calendario académico y reglamento)."
@@ -103,7 +92,6 @@ def construir_system_prompt(version: str, contexto: str, fecha_actual: str) -> s
 
 
 def extraer_respuesta_final(texto: str) -> str:
-    """Para la version CoT: el estudiante solo ve lo que va despues de 'Respuesta final:'."""
     marcador = "Respuesta final:"
     if marcador in texto:
         return texto.split(marcador, 1)[1].strip()
