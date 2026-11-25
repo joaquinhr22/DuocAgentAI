@@ -54,13 +54,19 @@ En esta abres el localhost y seguido interactuas con el proyecto.
 
 ### Observabilidad (Prometheus + Grafana)
 
-La app expone métricas en `http://localhost:8001/metrics` y la API en `http://localhost:8000/metrics/` (turnos por tipo, latencia, uso de herramientas, errores y aprobaciones). Para ver el dashboard necesitas [Docker Desktop](https://www.docker.com/products/docker-desktop/):
+La app expone métricas en `http://localhost:8001/metrics` y la API en `http://localhost:8000/metrics/` (turnos por tipo, latencia, uso de herramientas, errores, aprobaciones, tokens, costo en USD y detecciones de guardrails). Para ver el dashboard necesitas [Docker Desktop](https://www.docker.com/products/docker-desktop/):
 
 ```
 docker compose -f observabilidad/docker-compose.yml up -d
 ```
 
 Luego, en la app, usa el botón **Dashboard de observabilidad (Grafana)** de la barra lateral (o abre `http://localhost:3000/d/duoc-agente`). El dashboard es de solo lectura sin login; el usuario admin es `admin` con la clave de `GRAFANA_ADMIN_PASSWORD` (por defecto `admin`).
+
+### Costos, seguridad y trazabilidad
+
+- **Tokens y costo:** un callback (`ContadorTokens`, en `agente/metricas.py`) se engancha a cada llamada al modelo. El costo se calcula con `PRICE_INPUT_PER_1M` y `PRICE_OUTPUT_PER_1M` del `.env` (USD por 1M de tokens).
+- **Guardrails de entrada** (`agente/guardrails.py`): los datos personales (RUT, correo, teléfono, tarjeta) se enmascaran antes de llegar al modelo, y los intentos de prompt injection se bloquean. Se evalúan con `python eval/eval_guardrails.py`.
+- **Trazabilidad:** cada turno tiene un `trace_id` y usa la conversación como `session_id`. Los eventos se escriben como JSON en `logs/agente.jsonl` (ruta configurable con `ARCHIVO_LOGS`).
 
 ### Informe y presentación
 Los documentos de los cuales se alimenta nuestro modelo se encuentran en la carpeta `docs`

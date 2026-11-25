@@ -1,7 +1,11 @@
+import logging
+import time
+from uuid import uuid4
+
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.types import Command
 
-from agente import config, metricas
+from agente import config, guardrails, logs, metricas
 from agente.grafo import construir_grafo, crear_checkpointer
 
 
@@ -53,8 +57,33 @@ class Orquestador:
             raise
         return self._resultado(salida, thread_id)
 
+    def _bloqueado(self, mensaje: str, trace_id: str) -> dict:
+        return {"respuesta": mensaje, "pendiente_aprobacion": None, "tipo": "bloqueado_guardrail",
+                "motivo": "Bloqueado por guardrail de entrada", "consulta": None, "plan": [], "decisiones": [],
+                "herramientas": [], "documentos": [], "perfil": {}, "memorias": [], "resumen": "",
+                "trace_id": trace_id}
+
     def preguntar(self, user_id: str, thread_id: str, texto: str) -> dict:
-        return self._invocar({"messages": [HumanMessage(texto)], "user_id": user_id}, thread_id)
+        trace_id = uuid4().hex[:16]
+        rev = guardrails.revisar_entrada(texto)
+        for d in rev.detecciones:
+            metricas.GUARDRAILS.labels(d).inc()
+        logs.evento("turno_inicio", trace_id=trace_id, session_id=thread_id, user_id=user_id,
+                    guardrails=rev.detecciones, bloqueado=rev.bloqueado)
+        if rev.bloqueado:
+            logs.evento("turno_bloqueado", logging.WARNING, trace_id=trace_id, session_id=thread_id,
+                        motivo=rev.detecciones)
+            return self._bloqueado(rev.mensaje, trace_id)
+        inicio = time.time()
+        try:
+            r = self._invocar({"messages": [HumanMessage(rev.texto_limpio)], "user_id": user_id}, thread_id)
+        except Exception as e:
+            logs.evento("turno_error", logging.ERROR, trace_id=trace_id, session_id=thread_id, error=type(e).__name__)
+            raise
+        logs.evento("turno_fin", trace_id=trace_id, session_id=thread_id, tipo=r["tipo"],
+                    herramientas=r["herramientas"], latencia_ms=int((time.time() - inicio) * 1000))
+        r["trace_id"] = trace_id
+        return r
 
     def responder_aprobacion(self, thread_id: str, aprobado: bool) -> dict:
         metricas.APROBACIONES.labels("aprobado" if aprobado else "rechazado").inc()

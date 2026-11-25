@@ -36,6 +36,7 @@ def crear_app(orquestador=None) -> FastAPI:
     def salida(r: dict, conversacion: str) -> dict:
         return {
             "conversacion": conversacion,
+            "trace_id": r.get("trace_id"),
             "respuesta": r["respuesta"],
             "pendiente_aprobacion": r["pendiente_aprobacion"],
             "tipo": r["tipo"],

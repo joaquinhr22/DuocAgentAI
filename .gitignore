@@ -7,3 +7,4 @@ venv/
 .ipynb_checkpoints/
 salidas/*
 !salidas/.gitkeep
+logs/

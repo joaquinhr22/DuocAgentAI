@@ -1,4 +1,4 @@
-from agente import config
+from agente import config, metricas
 
 
 def crear_llm(modelo: str | None = None, temperatura: float | None = None):
@@ -11,4 +11,5 @@ def crear_llm(modelo: str | None = None, temperatura: float | None = None):
         temperature=config.TEMPERATURA if temperatura is None else temperatura,
         api_key=config.GROQ_API_KEY,
         max_retries=2,
+        callbacks=[metricas.ContadorTokens()],
     )

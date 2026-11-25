@@ -40,3 +40,10 @@ API_KEY = os.getenv("API_KEY")
 
 METRICS_PORT = int(os.getenv("METRICS_PORT", "8001"))
 GRAFANA_URL = os.getenv("GRAFANA_URL", "http://localhost:3000/d/duoc-agente")
+
+# Precios en USD por 1M de tokens (ver la página de precios de Groq para tu modelo)
+PRICE_INPUT_PER_1M = float(os.getenv("PRICE_INPUT_PER_1M", "0"))
+PRICE_OUTPUT_PER_1M = float(os.getenv("PRICE_OUTPUT_PER_1M", "0"))
+
+# Logs estructurados (una línea JSON por evento). Vacío = solo consola
+ARCHIVO_LOGS = os.getenv("ARCHIVO_LOGS", "logs/agente.jsonl")
