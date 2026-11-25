@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import Depends, FastAPI, Header, HTTPException
+from prometheus_client import make_asgi_app
 from pydantic import BaseModel, Field
 
 from agente import config
@@ -19,6 +20,7 @@ class Aprobacion(BaseModel):
 
 def crear_app(orquestador=None) -> FastAPI:
     app = FastAPI(title="DuocAIAgent API", version="2.0")
+    app.mount("/metrics", make_asgi_app())
     estado = {"agente": orquestador}
 
     def agente():

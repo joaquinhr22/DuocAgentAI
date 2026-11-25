@@ -27,6 +27,14 @@ def test_preguntar_y_salud(tmp_path):
     assert r["respuesta"] and r["conversacion"].startswith("u1-") and r["pendiente_aprobacion"] is None
 
 
+def test_metricas_expuestas(tmp_path):
+    c, _ = cliente(tmp_path, FakeLLM(estructurados={"Plan": plan("saludo")}))
+    c.post("/preguntar", json={"usuario": "u1", "mensaje": "hola"})
+    cuerpo = c.get("/metrics/").text
+    assert 'agente_respuestas_total{tipo="saludo"}' in cuerpo
+    assert "agente_latencia_segundos_bucket" in cuerpo
+
+
 def test_flujo_de_aprobacion_y_aviso_de_tickets(tmp_path):
     llm = FakeLLM(respuestas_agente=[[tool_call("crear_ticket_derivacion", {"motivo": "beca", "resumen": "no le responden"})], "Ticket creado."],
                   estructurados={"Plan": plan("consulta_simple", "crear_ticket_derivacion")})

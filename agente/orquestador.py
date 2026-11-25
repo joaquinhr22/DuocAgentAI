@@ -1,7 +1,7 @@
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.types import Command
 
-from agente import config
+from agente import config, metricas
 from agente.grafo import construir_grafo, crear_checkpointer
 
 
@@ -45,13 +45,20 @@ class Orquestador:
             "resumen": valores.get("resumen", ""),
         }
 
-    def preguntar(self, user_id: str, thread_id: str, texto: str) -> dict:
-        salida = self.grafo.invoke({"messages": [HumanMessage(texto)], "user_id": user_id}, self._config(thread_id))
+    def _invocar(self, entrada, thread_id: str) -> dict:
+        try:
+            salida = self.grafo.invoke(entrada, self._config(thread_id))
+        except Exception:
+            metricas.ERRORES.inc()
+            raise
         return self._resultado(salida, thread_id)
 
+    def preguntar(self, user_id: str, thread_id: str, texto: str) -> dict:
+        return self._invocar({"messages": [HumanMessage(texto)], "user_id": user_id}, thread_id)
+
     def responder_aprobacion(self, thread_id: str, aprobado: bool) -> dict:
-        salida = self.grafo.invoke(Command(resume=aprobado), self._config(thread_id))
-        return self._resultado(salida, thread_id)
+        metricas.APROBACIONES.labels("aprobado" if aprobado else "rechazado").inc()
+        return self._invocar(Command(resume=aprobado), thread_id)
 
     def historial(self, thread_id: str) -> list[dict]:
         valores = self.grafo.get_state(self._config(thread_id)).values

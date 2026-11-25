@@ -8,7 +8,7 @@ from langgraph.prebuilt import ToolNode
 from langgraph.types import Command, interrupt
 from pydantic import BaseModel, Field
 
-from agente import config, fechas, prompts
+from agente import config, fechas, metricas, prompts
 from agente.estado import AgentState
 from agente.herramientas import HERRAMIENTAS_CRITICAS, crear_herramientas
 
@@ -298,12 +298,14 @@ def construir_grafo(llm, servicios, checkpointer=None, llm_validador=None):
                 except Exception as e:
                     update["decisiones"].append(f"No se pudo resumir la conversación ({type(e).__name__}).")
 
+        latencia_s = time.time() - state.get("inicio_ts", time.time())
+        metricas.registrar_turno(state.get("tipo"), state.get("herramientas_usadas", []), latencia_s)
         try:
             db.guardar_traza({
                 "user_id": user_id, "pregunta": pregunta, "respuesta": respuesta, "tipo": state.get("tipo"),
                 "plan": state.get("plan", []), "decisiones": state.get("decisiones", []) + update["decisiones"],
                 "herramientas": state.get("herramientas_usadas", []),
-                "latencia_ms": int((time.time() - state.get("inicio_ts", time.time())) * 1000),
+                "latencia_ms": int(latencia_s * 1000),
             })
         except Exception as e:
             print(f"[WARN] no se pudo guardar la traza: {e}")

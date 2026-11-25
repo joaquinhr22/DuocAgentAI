@@ -52,5 +52,15 @@ streamlit run app.py
 
 En esta abres el localhost y seguido interactuas con el proyecto.
 
+### Observabilidad (Prometheus + Grafana)
+
+La app expone métricas en `http://localhost:8001/metrics` y la API en `http://localhost:8000/metrics/` (turnos por tipo, latencia, uso de herramientas, errores y aprobaciones). Para ver el dashboard necesitas [Docker Desktop](https://www.docker.com/products/docker-desktop/):
+
+```
+docker compose -f observabilidad/docker-compose.yml up -d
+```
+
+Luego, en la app, usa el botón **Dashboard de observabilidad (Grafana)** de la barra lateral (o abre `http://localhost:3000/d/duoc-agente`). El dashboard es de solo lectura sin login; el usuario admin es `admin` con la clave de `GRAFANA_ADMIN_PASSWORD` (por defecto `admin`).
+
 ### Informe y presentación
 Los documentos de los cuales se alimenta nuestro modelo se encuentran en la carpeta `docs`

@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from prometheus_client import start_http_server
 
 from agente import config, fechas
 from agente.orquestador import Orquestador
@@ -17,6 +18,10 @@ NOMBRES_HERRAMIENTAS = {
 
 @st.cache_resource(show_spinner="Cargando agente, base de datos y modelos...")
 def cargar_agente() -> Orquestador:
+    try:
+        start_http_server(config.METRICS_PORT)  # endpoint /metrics que lee Prometheus
+    except OSError as e:
+        print(f"[WARN] no se pudo abrir el puerto de métricas {config.METRICS_PORT}: {e}")
     return Orquestador()
 
 
@@ -47,6 +52,7 @@ with st.sidebar:
         st.session_state.usuario = usuario
         nueva_conversacion()
     st.button("Nueva conversación", on_click=nueva_conversacion, width="stretch")
+    st.link_button("Dashboard de observabilidad (Grafana)", config.GRAFANA_URL, width="stretch")
     st.caption(f"Conversación: `{st.session_state.thread_id}`")
 
     st.subheader("Perfil (memoria largo plazo)")

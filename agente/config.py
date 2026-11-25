@@ -37,3 +37,6 @@ CARPETA_SALIDAS = os.getenv("CARPETA_SALIDAS", "salidas")
 FECHA_HOY = os.getenv("FECHA_HOY")
 
 API_KEY = os.getenv("API_KEY")
+
+METRICS_PORT = int(os.getenv("METRICS_PORT", "8001"))
+GRAFANA_URL = os.getenv("GRAFANA_URL", "http://localhost:3000/d/duoc-agente")
